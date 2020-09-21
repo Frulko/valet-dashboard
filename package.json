@@ -1,0 +1,23 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "description": "A simple dashboard for Laravel Valet to display all available sites.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aaemnnosttv/valet-dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aaemnnosttv/valet-dashboard/issues"
+  },
+  "homepage": "https://github.com/aaemnnosttv/valet-dashboard#readme",
+  "dependencies": {
+    "tailwindcss": "^1.8.10"
+  }
+}

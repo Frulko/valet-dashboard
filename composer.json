@@ -1,0 +1,10 @@
+{
+    "name": "guillaumedumoulin/dashboard",
+    "authors": [
+        {
+            "name": "Guillaume",
+            "email": "guillaume.dumoulin@hotmail.fr"
+        }
+    ],
+    "require": {}
+}
