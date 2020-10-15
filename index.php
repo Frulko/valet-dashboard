@@ -1,4 +1,27 @@
 <?php
+
+  
+  function p($vars) {
+    echo '<pre>';
+    var_dump($vars);
+    echo '</pre>';
+  }
+
+  function d($vars) {
+    p($vars);
+    die();
+  }
+
+  if (isset($_GET['phpinfo'])) {
+    phpinfo();
+    die();
+  }
+
+  if (isset($_GET['path'])) {
+    exec('open -a "Finder" ' . $_GET['path']);
+    die();
+  }
+
   $valet_xdg_home = getenv('HOME') . '/.config/valet';
   $valet_old_home = getenv('HOME') . '/.valet';
   $valet_home_path = is_dir($valet_xdg_home) ? $valet_xdg_home : $valet_old_home;
@@ -15,7 +38,58 @@
     'https://www.advancedcustomfields.com/resources/' => 'ACF Documentation',
     'http://localhost:8025/' => 'Mailhog',
     'https://www.figma.com' => 'Figma',
-  ]
+    'https://heroicons.com/' => 'Hero Icons',
+    'https://docs.google.com/spreadsheets/d/1Wv0Q1dHkslTp-bGZYr-6g81qVRN0AeewDkl-YfpNr2I/edit#gid=1898544504' => '[Drive] Checklist',
+    'https://docs.google.com/spreadsheets/d/1jVbTs7K9GLZJymRwYxgWvfChqHg52k6E8TmaHzsK9VU/edit#gid=1895696490' => '[Drive] Drive',
+    'https://docs.google.com/spreadsheets/d/1mNeJMCrpT7apf5ZR4LJy-61eZOsbhcZoYWm_YZjPV2U/edit#gid=1869661810' => '[Drive] Sauvegardes',
+    'https://app.asana.com/0/home/1138075063883187' => 'Asana'
+  ];
+
+
+  $mysqli = new mysqli("localhost", "root", "hunter2");
+  /* Vérification de la connexion */
+  if (mysqli_connect_errno()) {
+      printf("Échec de la connexion : %s\n", mysqli_connect_error());
+      exit();
+  }
+
+  $mysql_server_info = $mysqli->server_info;
+  $mysqli->close();
+
+  $sites = [];
+  $nb = 0;
+  foreach ($valet_config->paths as $parked_path){
+
+    foreach (scandir($parked_path) as $site){
+      if ($site == basename(__DIR__)): continue; endif;
+      if ((is_dir("$parked_path/$site") || is_link("$parked_path/$site")) && $site[0] != '.'){
+
+        $path = str_replace(getenv('HOME'), '~', $parked_path);
+        if (empty($sites[$path])) {
+          $sites[$path] = [];
+        }
+
+
+        $sites[$path][] = [
+          "lastupdate" => filemtime("$parked_path/$site"),
+          "path" => "$parked_path/$site",
+          "url" => $site . "." . $tld
+        ];
+        
+        
+        $nb ++;
+      }
+    }
+
+    $updates = array_column($sites[$path], 'lastupdate');
+    array_multisort($updates, SORT_DESC, $sites[$path]);
+  }
+  
+
+  
+  
+
+ 
 ?>
 
 <html lang="en">
@@ -29,20 +103,20 @@
   <!-- Background color split screen for large screens -->
 <div class="fixed top-0 left-0 w-1/2 h-full bg-white"></div>
 <div class="fixed top-0 right-0 w-1/2 h-full bg-gray-50"></div>
-<div class="relative min-h-screen flex flex-col">
+<div class="relative flex flex-col min-h-screen">
   <!-- Navbar -->
   <nav class="flex-shrink-0 bg-indigo-700">
-    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+    <div class="px-2 mx-auto max-w-7xl sm:px-4 lg:px-8">
       <div class="relative flex items-center justify-between h-16">
         <!-- Logo section -->
-        <div class="flex items-center px-2 lg:px-0 xl:w-64">
+        <div class="flex items-center px-2 lg:px-0">
           <div class="flex-shrink-0">
-            <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-on-brand.svg" alt="Workflow logo">
+            <img class="w-auto h-8" src="https://tailwindui.com/img/logos/workflow-mark-on-brand.svg" alt="Workflow logo">
           </div>
         </div>
-        <div class="flex items-center justify-center w-full">
+        <div class="flex items-center justify-start w-full ml-4">
           <div class="flex-shrink-0">
-            <h1 class="text-white text-extrabold text-3xl">Dashboard</h1>
+            <h1 class="text-3xl font-bold text-indigo-300 text-extrabold">Valet Dashboard</h1>
           </div>
         </div>
       </div>
@@ -55,26 +129,26 @@
     -->
     <div class="hidden lg:hidden">
       <div class="px-2 pt-2 pb-3">
-        <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-indigo-800 focus:outline-none focus:text-indigo-100 focus:bg-indigo-600 transition duration-150 ease-in-out">Dashboard</a>
-        <a href="#" class="mt-1 block px-3 py-2 rounded-md text-base font-medium text-indigo-200 hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600 transition duration-150 ease-in-out">Support</a>
+        <a href="#" class="block px-3 py-2 text-base font-medium text-white transition duration-150 ease-in-out bg-indigo-800 rounded-md focus:outline-none focus:text-indigo-100 focus:bg-indigo-600">Dashboard</a>
+        <a href="#" class="block px-3 py-2 mt-1 text-base font-medium text-indigo-200 transition duration-150 ease-in-out rounded-md hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Support</a>
       </div>
       <div class="pt-4 pb-3 border-t border-indigo-800">
         <div class="px-2">
-          <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-indigo-200 hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600 transition duration-150 ease-in-out">Your Profile</a>
-          <a href="#" class="mt-1 block px-3 py-2 rounded-md text-base font-medium text-indigo-200 hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600 transition duration-150 ease-in-out">Settings</a>
-          <a href="#" class="mt-1 block px-3 py-2 rounded-md text-base font-medium text-indigo-200 hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600 transition duration-150 ease-in-out">Sign out</a>
+          <a href="#" class="block px-3 py-2 text-base font-medium text-indigo-200 transition duration-150 ease-in-out rounded-md hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Your Profile</a>
+          <a href="#" class="block px-3 py-2 mt-1 text-base font-medium text-indigo-200 transition duration-150 ease-in-out rounded-md hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Settings</a>
+          <a href="#" class="block px-3 py-2 mt-1 text-base font-medium text-indigo-200 transition duration-150 ease-in-out rounded-md hover:text-indigo-100 hover:bg-indigo-600 focus:outline-none focus:text-white focus:bg-indigo-600">Sign out</a>
         </div>
       </div>
     </div>
   </nav>
 
   <!-- 3 column wrapper -->
-  <div class="flex-grow w-full max-w-7xl mx-auto xl:px-8 lg:flex">
+  <div class="flex-grow w-full mx-auto max-w-7xl xl:px-8 lg:flex">
     <!-- Left sidebar & main wrapper -->
     <div class="flex-1 min-w-0 bg-white xl:flex">
       <!-- Account profile -->
-      <div class="xl:flex-shrink-0 xl:w-64 xl:border-r xl:border-gray-200 bg-white">
-        <div class="pl-4 pr-6 py-6 sm:pl-6 lg:pl-8 xl:pl-0">
+      <div class="bg-white xl:flex-shrink-0 xl:w-64 xl:border-r xl:border-gray-200">
+        <div class="py-6 pl-4 pr-6 sm:pl-6 lg:pl-8 xl:pl-0">
           <div class="flex items-center justify-between">
             <div class="flex-1 space-y-8">
               <!-- Meta info -->
@@ -82,10 +156,29 @@
 
                 <div class="flex items-center space-x-2">
                   <!-- Heroicon name: collection -->
-                  <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                   </svg>
-                  <span class="text-sm text-gray-500 leading-5 font-medium">8 Projects</span>
+                  <span class="text-sm font-medium leading-5 text-gray-500"><?php echo $nb; ?> Projects</span>
+                </div>
+                <div class="flex text-sm font-medium leading-5 text-gray-500" >
+                  <svg class="w-5 h-5 mr-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <?php echo 'PHP version : ' . phpversion(); ?>
+                </div>
+                <div class="flex text-sm font-medium leading-5 text-gray-500" >
+                    <svg class="w-5 h-5 mr-2 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                  <?php echo  $mysql_server_info ?>
+                </div>
+
+                <div class="flex text-sm font-medium leading-5 text-gray-600" >
+                  <svg class="w-5 h-5 mr-2 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <a href="?phpinfo">PHPInfo</a>
                 </div>
               </div>
             </div>
@@ -95,61 +188,61 @@
 
       <!-- Projects List -->
       <div class="bg-white lg:min-w-0 lg:flex-1">
-        <div class="pl-4 pr-6 pt-4 pb-4 border-b border-t border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
+        <div class="pt-4 pb-4 pl-4 pr-6 border-t border-b border-gray-200 sm:pl-6 lg:pl-8 xl:pl-6 xl:pt-6 xl:border-t-0">
           <div class="flex items-center">
-            <h1 class="flex-1 text-lg leading-7 font-medium">Projects</h1>
+            <h1 class="flex-1 text-lg font-medium leading-7">Projects</h1>
           </div>
         </div>
-        <ul class="relative z-0 divide-y divide-gray-200 border-b border-gray-200">
-          <?php foreach ($valet_config->paths as $parked_path) : ?>
-              <li class="leading-normal whitespace-no-wrap pb-3">
-                  <code class="inline-block ml-8 pt-5 font-mono text-gray-600"><?= str_replace(getenv('HOME'), '~', $parked_path) ?></code>
+        <ul class="relative z-0 border-b border-gray-200 divide-y divide-gray-200">
+          <?php foreach ($sites as $path => $sites_path) : ?>
+              <li class="pb-3 leading-normal whitespace-no-wrap">
+                  <code class="inline-block pt-5 ml-8 font-mono text-gray-600"><?= $path ?></code>
                   <ul class="">
-                      <?php foreach (scandir($parked_path) as $site) : ?>
-                          <?php if ($site == basename(__DIR__)): continue; endif ?>
-                          <?php if ((is_dir("$parked_path/$site") || is_link("$parked_path/$site")) && $site[0] != '.') : ?>
-
-                              <li class="relative pl-4 pr-6 py-3 hover:bg-gray-50 sm:py-3 sm:pl-6 lg:pl-8 xl:pl-6">
+                      <?php foreach ($sites_path as $site) : ?>
+                      
+                              <li class="relative py-3 pl-4 pr-6 hover:bg-gray-50 sm:py-3 sm:pl-6 lg:pl-8 xl:pl-6">
                                 <div class="flex items-center justify-between space-x-4">
                                   <!-- Repo name and link -->
                                   <div class="min-w-0 space-y-3">
                                     <div class="flex items-center space-x-3">
-                                      <span aria-label="Running" class="h-4 w-4 bg-green-100 rounded-full flex items-center justify-center">
-                                        <span class="h-2 w-2 bg-green-400 rounded-full"></span>
+                                      <span aria-label="Running" class="flex items-center justify-center w-4 h-4 bg-green-100 rounded-full">
+                                        <span class="w-2 h-2 bg-green-400 rounded-full"></span>
                                       </span>
 
                                       <span class="block">
                                         <h2 class="text-sm font-medium leading-5">
-                                          <a href="http://<?= "$site.$tld" ?>/">
+                                          <a href="http://<?= $site['url'] ?>/">
                                             <span class="absolute inset-0"></span>
-                                            <?= "$site.$tld" ?>
+                                            <?= $site['url'] ?>
                                           </a>
+                                          
                                         </h2>
                                       </span>
                                     </div>
-                                    <!-- <a href="#" class="relative group flex items-center space-x-2.5">
-                                      <svg class="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8.99917 0C4.02996 0 0 4.02545 0 8.99143C0 12.9639 2.57853 16.3336 6.15489 17.5225C6.60518 17.6053 6.76927 17.3277 6.76927 17.0892C6.76927 16.8762 6.76153 16.3104 6.75711 15.5603C4.25372 16.1034 3.72553 14.3548 3.72553 14.3548C3.31612 13.316 2.72605 13.0395 2.72605 13.0395C1.9089 12.482 2.78793 12.4931 2.78793 12.4931C3.69127 12.5565 4.16643 13.4198 4.16643 13.4198C4.96921 14.7936 6.27312 14.3968 6.78584 14.1666C6.86761 13.5859 7.10022 13.1896 7.35713 12.965C5.35873 12.7381 3.25756 11.9665 3.25756 8.52116C3.25756 7.53978 3.6084 6.73667 4.18411 6.10854C4.09129 5.88114 3.78244 4.96654 4.27251 3.72904C4.27251 3.72904 5.02778 3.48728 6.74717 4.65082C7.46487 4.45101 8.23506 4.35165 9.00028 4.34779C9.76494 4.35165 10.5346 4.45101 11.2534 4.65082C12.9717 3.48728 13.7258 3.72904 13.7258 3.72904C14.217 4.96654 13.9082 5.88114 13.8159 6.10854C14.3927 6.73667 14.7408 7.53978 14.7408 8.52116C14.7408 11.9753 12.6363 12.7354 10.6318 12.9578C10.9545 13.2355 11.2423 13.7841 11.2423 14.6231C11.2423 15.8247 11.2313 16.7945 11.2313 17.0892C11.2313 17.3299 11.3937 17.6097 11.8501 17.522C15.4237 16.3303 18 12.9628 18 8.99143C18 4.02545 13.97 0 8.99917 0Z" fill="currentcolor" />
+                                    <a href="?path=<?= $site['path'] ?>" class="relative group flex items-center space-x-2.5">
+
+                                      <svg class="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                                       </svg>
-                                      <div class="text-sm leading-5 ml-3 text-gray-500 group-hover:text-gray-900 font-medium truncate">
-                                        debbielewis/workcation
+                                      <div class="ml-3 text-sm font-medium leading-5 text-gray-500 truncate group-hover:text-gray-900">
+                                      <?= $site['path'] ?>
                                       </div>
-                                    </a> -->
+                                    </a>
                                   </div>
                                   <div class="sm:hidden">
                                     <!-- Heroicon name: chevron-right -->
-                                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                       <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                     </svg>
                                   </div>
                                   <!-- Repo meta info -->
-                                  <div class="hidden sm:flex flex-col flex-shrink-0 items-end space-y-3">
+                                  <div class="flex-col items-end flex-shrink-0 hidden space-y-3 sm:flex">
                                     <p class="flex items-center space-x-4">
-                                      <a href="http://<?= "$site.$tld" ?>/" class="relative text-sm leading-5 text-gray-500 hover:text-gray-900 font-medium">
+                                      <a href="http://<?= "$site.$tld" ?>/" class="relative text-sm font-medium leading-5 text-gray-500 hover:text-gray-900">
                                         Visit site
                                       </a>
                                     </p>
-                                    <!-- <p class="flex text-gray-500 text-sm leading-5 space-x-2">
+                                    <!-- <p class="flex space-x-2 text-sm leading-5 text-gray-500">
                                       <span>Laravel</span>
                                       <span>&middot;</span>
                                       <span>Last deploy 3h ago</span>
@@ -157,7 +250,6 @@
                                   </div>
                                 </div>
                               </li>
-                          <?php endif ?>
                       <?php endforeach ?>
                   </ul>
               </li>
@@ -169,10 +261,10 @@
       </div>
     </div>
     <!-- Activity feed -->
-    <div class="bg-gray-50 pr-4 sm:pr-6 lg:pr-8 lg:flex-shrink-0 lg:border-l lg:border-gray-200 xl:pr-0">
+    <div class="pr-4 bg-gray-50 sm:pr-6 lg:pr-8 lg:flex-shrink-0 lg:border-l lg:border-gray-200 xl:pr-0">
       <div class="pl-6 lg:w-80">
         <div class="pt-6 pb-2">
-          <h2 class="text-sm leading-5 font-semibold">Tools</h2>
+          <h2 class="text-sm font-semibold leading-5">Tools</h2>
         </div>
         <div>
           <ul class="divide-y divide-gray-200">
@@ -183,8 +275,8 @@
                   <div class="flex space-x-3">
                     <div class="flex-1 space-y-1">
                       <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-medium leading-5 mr-10"><?php echo $name; ?></h3>
-                        <a href="<?php echo $link; ?>" target="blank" class="text-sm leading-5 text-gray-500"><?php echo $link; ?></a>
+                        <h3 class="mr-10 text-sm font-medium leading-5"><?php echo $name; ?></h3>
+                        <a href="<?php echo $link; ?>" target="blank" class="text-sm leading-5 text-gray-500" style="width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $link; ?></a>
                       </div>
                     </div>
                   </div>
